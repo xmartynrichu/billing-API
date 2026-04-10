@@ -42,6 +42,7 @@ const allowedOrigins = [
   'http://localhost:4201',
   'http://127.0.0.1:4200',
   'http://127.0.0.1:4201',
+  'https://billing-ui-21kx.onrender.com',
   process.env.CLIENT_URL
 ].filter(Boolean);
 

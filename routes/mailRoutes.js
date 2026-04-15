@@ -40,8 +40,8 @@ router.post('/send-profit-report', async (req, res) => {
       console.error('❌ EMAIL_USER or EMAIL_PASSWORD not set in .env');
       return res.status(400).json({ 
         error: 'Email service not configured',
-        details: 'Ethereal Email credentials missing',
-        setup: 'Visit https://ethereal.email to get free temporary email credentials, then add them to .env'
+        details: 'Gmail credentials missing from .env',
+        setup: 'Add EMAIL_USER and EMAIL_PASSWORD (Gmail App Password) to .env file'
       });
     }
 
@@ -334,11 +334,12 @@ router.post('/send-profit-report', async (req, res) => {
 
   } catch (err) {
     console.error('❌ Email send error:', err.message);
+    console.error('Full error:', err);
     
     res.status(500).json({ 
       error: 'Failed to send email',
       details: err.message,
-      setup: 'Visit https://ethereal.email to get free email credentials'
+      hint: 'Check Gmail credentials: EMAIL_USER and EMAIL_PASSWORD in .env. Make sure 2FA is enabled and App Password is correct.'
     });
   } finally {
     // ==========================================

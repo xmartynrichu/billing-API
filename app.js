@@ -21,6 +21,7 @@ const fishRouter = require('./routes/fishRoutes');
 const employeeRouter = require('./routes/employeeRoutes');
 const dashboardRouter = require('./routes/dashboardRoutes');
 const profitRouter = require('./routes/profitRoutes');
+const mailRouter = require('./routes/mailRoutes');
 
 // Constants
 const { API_ROUTES } = require('./utils/constants');
@@ -97,6 +98,7 @@ app.use(API_ROUTES.FISH, fishRouter);
 app.use(API_ROUTES.EMPLOYEES, employeeRouter);
 app.use(API_ROUTES.DASHBOARD, dashboardRouter);
 app.use(API_ROUTES.PROFIT, profitRouter);
+app.use('/mail', mailRouter);
 
 /**
  * 404 Not Found Handler

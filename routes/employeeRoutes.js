@@ -70,7 +70,60 @@ router.get('/', async (req, res) => {
   }
 });
 
-// DELETE /users/:id
+// PUT /employees/:id
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const {
+    entryby,
+    empname,
+    empdesignation,
+    empsalary,
+    empdob,
+    empmobile,
+    emplocation,
+    empemail
+  } = req.body;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    await client.query(
+      'SELECT * FROM update_employeemaster($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+      [
+        id,
+        entryby,
+        empname,
+        empdesignation,
+        empsalary,
+        empdob,
+        empmobile,
+        emplocation,
+        empemail,
+        'ref1'
+      ]
+    );
+
+    const result = await client.query('FETCH ALL FROM ref1');
+
+    await client.query('CLOSE ref1');
+    await client.query('COMMIT');
+
+    res.status(200).json({
+      message: result.rows[0].result
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Update employee error:', err);
+    res.status(500).json({ error: 'Database error' });
+  } finally {
+    client.release();
+  }
+});
+
+// DELETE /employees/:id
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   const client = await pool.connect();

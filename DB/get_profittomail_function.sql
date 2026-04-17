@@ -29,33 +29,33 @@ BEGIN
         exp.expense_cat,
         exp.expense_amount,
         -- Summary totals
-        rev.total_revenue,
-        exp.total_expense,
-        (rev.total_revenue - COALESCE(exp.total_expense, 0)) as total_profit
+        COALESCE(rev.total_revenue, 0) as total_revenue,
+        COALESCE(exp.total_expense, 0) as total_expense,
+        (COALESCE(rev.total_revenue, 0) - COALESCE(exp.total_expense, 0)) as total_profit
     FROM 
         (
             SELECT 
-                COALESCE(p_date, CURRENT_DATE) as statement_date,
+                CAST(rev_date AS date) as statement_date,
                 fish_name,
-                SUM(fish_sold::numeric) as fish_revenue,
-                SUM(SUM(fish_sold::numeric)) OVER () as total_revenue
+                SUM(CAST(fish_sold AS numeric)) as fish_revenue,
+                SUM(SUM(CAST(fish_sold AS numeric))) OVER () as total_revenue
             FROM revenue
-            WHERE p_date IS NULL OR rev_date::date = p_date
-            GROUP BY fish_name
+            WHERE p_date IS NULL OR CAST(rev_date AS date) = p_date
+            GROUP BY CAST(rev_date AS date), fish_name
             ORDER BY fish_revenue DESC
         ) rev
     FULL OUTER JOIN 
         (
             SELECT 
-                COALESCE(p_date, CURRENT_DATE) as statement_date,
+                CAST(expense_date AS date) as statement_date,
                 expense_cat,
-                SUM(expense_amount::numeric) as expense_amount,
-                SUM(SUM(expense_amount::numeric)) OVER () as total_expense
+                SUM(CAST(expense_amount AS numeric)) as expense_amount,
+                SUM(SUM(CAST(expense_amount AS numeric))) OVER () as total_expense
             FROM expense_details
-            WHERE p_date IS NULL OR expense_date::date = p_date
-            GROUP BY expense_cat
+            WHERE p_date IS NULL OR CAST(expense_date AS date) = p_date
+            GROUP BY CAST(expense_date AS date), expense_cat
             ORDER BY expense_amount DESC
-        ) exp ON FALSE;
+        ) exp ON rev.statement_date = exp.statement_date;
      
     RETURN NEXT ref1;
 

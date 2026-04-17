@@ -4,24 +4,25 @@ const pool = require('../DB/db');
 
 /**
  * GET /profit/email/:date
- * Calls the PostgreSQL function: get_profittomail(date)
+ * Calls the PostgreSQL function: get_profittomail(currentuser, date)
  * Returns: Profit report data for a specific date for email attachment
  * 
- * Example: GET /profit/email/2026-04-15
+ * Example: GET /profit/email/2026-04-15?currentuser=martin
  */
 router.get('/email/:date', async (req, res) => {
+  const currentuser = req.query.currentuser || 'system';
   const client = await pool.connect();
   const { date } = req.params;
 
   try {
     console.log(`\n=== GET /profit/email/${date} API called ===`);
-    console.log(`Requested date: ${date}`);
+    console.log(`Requested date: ${date}, User: ${currentuser}`);
     
     await client.query('BEGIN');
 
-    // Call the PostgreSQL function: get_profittomail() with specific date parameter
-    console.log('Executing: SELECT * FROM get_profittomail(\'ref1\', $1)');
-    const selectResult = await client.query('SELECT * FROM get_profittomail($1, $2)', ['ref1', date]);
+    // Call the PostgreSQL function: get_profittomail() with currentuser and specific date parameter
+    console.log('Executing: SELECT * FROM get_profittomail($1, $2, $3)');
+    const selectResult = await client.query('SELECT * FROM get_profittomail($1, $2, $3)', [currentuser, 'ref1', date]);
     console.log('Function executed');
 
     // Fetch all profit data from cursor

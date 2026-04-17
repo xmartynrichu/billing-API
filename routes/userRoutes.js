@@ -54,12 +54,13 @@ router.post('/', async (req, res) => {
 
 // GET /users
 router.get('/', async (req, res) => {
+  const currentuser = req.query.currentuser || 'system';
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    await client.query('SELECT * FROM get_userdetails($1)', ['ref1']);
+    await client.query('SELECT * FROM get_userdetails($1, $2)', [currentuser, 'ref1']);
 
     const cursorResult = await client.query('FETCH ALL FROM ref1');
 
@@ -205,7 +206,5 @@ router.post('/usercheck', async (req, res) => {
 
 
 
-
-module.exports = router;
 
 module.exports = router;

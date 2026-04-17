@@ -43,15 +43,59 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /:id - Update expense with multiple details
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const expenseData = req.body; // <-- JSON array
 
-
-router.get('/', async (req, res) => {
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    await client.query('SELECT * FROM get_expensereport($1)', ['ref1']);
+    // Call update function with JSONB
+    await client.query(
+      'SELECT * FROM update_expense_details_json($1, $2::jsonb, $3)',
+      [
+        id,
+        JSON.stringify(expenseData),
+        'ref1'
+      ]
+    );
+
+    // Fetch cursor result
+    const result = await client.query('FETCH ALL IN "ref1"');
+
+    await client.query('CLOSE "ref1"');
+    await client.query('COMMIT');
+
+    res.status(200).json({
+      message: result.rows[0]?.result || 'Success'
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Update expense error:', err);
+
+    res.status(500).json({
+      error: 'Database error',
+      details: err.message
+    });
+  } finally {
+    client.release();
+  }
+});
+
+
+
+router.get('/', async (req, res) => {
+  const currentuser = req.query.currentuser || 'system';
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    await client.query('SELECT * FROM get_expensereport($1, $2)', [currentuser, 'ref1']);
 
     const cursorResult = await client.query('FETCH ALL FROM ref1');
 
@@ -62,7 +106,7 @@ router.get('/', async (req, res) => {
 
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Get users error:', err);
+    console.error('Get expense error:', err);
     res.status(500).json({ error: 'Database error' });
   } finally {
     client.release();
